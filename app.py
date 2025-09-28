@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import cv2
@@ -21,11 +21,9 @@ templates = Jinja2Templates(directory="templates")
 if not os.path.exists("results"):
     os.makedirs("results")
 
-
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.post("/procesar/")
 async def procesar(request: Request, file: UploadFile = File(...)):
@@ -54,13 +52,13 @@ async def procesar(request: Request, file: UploadFile = File(...)):
     eq_path = f"results/eq_{uuid.uuid4().hex}.jpg"
     cv2.imwrite(eq_path, gray_eq)
 
-    # 4. Reducción de ruido
+    # 4. Reducción de ruido (Gaussiano + Mediana)
     denoise = cv2.GaussianBlur(gray_eq, (5, 5), 1)
     denoise = cv2.medianBlur(denoise, 3)
     denoise_path = f"results/denoise_{uuid.uuid4().hex}.jpg"
     cv2.imwrite(denoise_path, denoise)
 
-    # 5. Bordes + nitidez
+    # 5. Detección de bordes + realce de nitidez
     blur = cv2.GaussianBlur(denoise, (9, 9), 10)
     sharp = cv2.addWeighted(denoise, 1.5, blur, -0.5, 0)
     edges = cv2.Canny(denoise, 50, 150)
@@ -68,17 +66,22 @@ async def procesar(request: Request, file: UploadFile = File(...)):
     fusion_path = f"results/fusion_{uuid.uuid4().hex}.jpg"
     cv2.imwrite(fusion_path, fusion)
 
-    # 6. Visión nocturna (gamma + falso color)
+    # 6. Corrección gamma
     def corregir_gamma(img, gamma):
         inv_gamma = 1.0 / gamma
-        table = np.array([(i / 255.0) ** inv_gamma * 255 for i in range(256)]).astype("uint8")
+        table = np.array([
+            ((i / 255.0) ** inv_gamma) * 255 for i in range(256)
+        ]).astype("uint8")
         return cv2.LUT(img, table)
 
     night_gamma = corregir_gamma(fusion, gamma=2.8)
+
+    # 7. Falso color (visión nocturna)
     night_vision = cv2.applyColorMap(night_gamma, cv2.COLORMAP_SUMMER)
     night_path = f"results/night_{uuid.uuid4().hex}.jpg"
     cv2.imwrite(night_path, night_vision)
 
+    # Retornar a la plantilla
     return templates.TemplateResponse("index.html", {
         "request": request,
         "original": "/" + original_path,
