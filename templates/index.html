@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación de Visión Nocturna</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Simulación de Visión Nocturna</h1>
+
+        <form action="/procesar/" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Procesar Imagen</button>
+        </form>
+
+        <div class="grid">
+            <div class="card">
+                <h3>1. Original</h3>
+                {% if original %}<img src="{{ original }}" onclick="openModal(this)">{% endif %}
+            </div>
+            <div class="card">
+                <h3>2. Escala de grises</h3>
+                {% if gray %}<img src="{{ gray }}" onclick="openModal(this)">{% endif %}
+            </div>
+            <div class="card">
+                <h3>3. Ecualización</h3>
+                {% if eq %}<img src="{{ eq }}" onclick="openModal(this)">{% endif %}
+            </div>
+            <div class="card">
+                <h3>4. Reducción de ruido</h3>
+                {% if denoise %}<img src="{{ denoise }}" onclick="openModal(this)">{% endif %}
+            </div>
+            <div class="card">
+                <h3>5. Bordes + nitidez</h3>
+                {% if fusion %}<img src="{{ fusion }}" onclick="openModal(this)">{% endif %}
+            </div>
+            <div class="card">
+                <h3>6. Visión nocturna</h3>
+                {% if night %}<img src="{{ night }}" onclick="openModal(this)">{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+
+    <script>
+        function openModal(img) {
+            document.getElementById("modal").style.display = "block";
+            document.getElementById("modal-img").src = img.src;
+        }
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+    </script>
+</body>
+</html>
