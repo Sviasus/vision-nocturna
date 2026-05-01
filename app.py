@@ -7,6 +7,12 @@ import numpy as np
 import uuid
 import os
 
+import os
+
+# Esto asegura que la carpeta de resultados exista en el servidor de Render
+if not os.path.exists("results"):
+    os.makedirs("results")
+    
 # Crear app
 app = FastAPI()
 
