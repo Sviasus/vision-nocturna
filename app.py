@@ -9,9 +9,13 @@ import os
 
 import os
 
-# Esto asegura que la carpeta de resultados exista en el servidor de Render
-if not os.path.exists("results"):
-    os.makedirs("results")
+
+
+
+for folder in ["results", "static", "templates"]:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    
     
 # Crear app
 app = FastAPI()
